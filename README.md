@@ -1,2 +1,2 @@
 # Radiomics_python
-radiomics
+python programming tools for radiomics analysis
