@@ -9,6 +9,44 @@ cdef extern from "math.h" nogil:
     double cos(double)
 
 @cython.boundscheck(False)
+def _3d_glcm_vector_loop(unsigned short [:,:,:] image, double distance, int dx, int dy, int dz):
+
+    cdef int x, y, z, xs, ys, zs, len_x, len_y, len_z
+    cdef int i, j, _min, _max
+
+    len_z = image.shape[0]
+    len_y = image.shape[1]
+    len_x = image.shape[2]
+
+    _min = np.min(image)
+    _max = np.max(image)
+
+    levels = _max + 1
+
+    out = np.zeros([levels, levels], dtype=np.int)
+    cdef int [:,:] out_view = out
+
+    for z in range(len_z):
+
+        for y in range(len_y):
+
+            for x in range(len_x):
+
+                i = image[z, y, x]
+
+                xs = x + <int>(distance * dx)
+                ys = y + <int>(distance * dy)
+                zs = z + <int>(distance * dz)
+
+                if xs >= 0 and xs < len_x and ys >= 0 and ys < len_y and zs >= 0 and zs < len_z:
+
+                    j = image[zs, ys, xs]
+
+                    out_view[i, j] += 1
+
+    return out[1:,1:]
+
+@cython.boundscheck(False)
 def _2d_glcm_loop(int [:,:] image, double distance, double angle, int bin_width):
 
     cdef int r, c, row, col, rows, cols
@@ -130,41 +168,3 @@ def _3d_glcm_vector_loop_old(unsigned short [:,:,:] image, double distance, int 
                     out_view[ii, jj] += 1
 
     return out
-
-@cython.boundscheck(False)
-def _3d_glcm_vector_loop(unsigned short [:,:,:] image, double distance, int dx, int dy, int dz):
-
-    cdef int x, y, z, xs, ys, zs, len_x, len_y, len_z
-    cdef int i, j, _min, _max
-
-    len_z = image.shape[0]
-    len_y = image.shape[1]
-    len_x = image.shape[2]
-
-    _min = np.min(image)
-    _max = np.max(image)
-
-    levels = _max + 1
-
-    out = np.zeros([levels, levels], dtype=np.int)
-    cdef int [:,:] out_view = out
-
-    for z in range(len_z):
-
-        for y in range(len_y):
-
-            for x in range(len_x):
-
-                i = image[z, y, x]
-
-                xs = x + <int>(distance * dx)
-                ys = y + <int>(distance * dy)
-                zs = z + <int>(distance * dz)
-
-                if xs >= 0 and xs < len_x and ys >= 0 and ys < len_y and zs >= 0 and zs < len_z:
-
-                    j = image[zs, ys, xs]
-
-                    out_view[i, j] += 1
-
-    return out[1:,1:]

@@ -122,7 +122,7 @@ class GLCM_Matrix:
 
         self.HX = None
         self.HY = None
-        self.H = None
+        self.HXY = None
         self.HXY1 = None
         self.HXY2 = None
 
@@ -239,7 +239,7 @@ class GLCM_Matrix:
 
     def entropy(self):
 
-        return self.H
+        return self.HXY
 
     def homogeneity1(self):
 

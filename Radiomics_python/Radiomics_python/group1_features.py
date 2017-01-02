@@ -15,16 +15,6 @@ def group1_features(image):
 
     X = image.ravel()
 
-    #X = []
-
-    #for i in image.ravel():
-
-    #    if i > 0:
-
-    #        X.append(i)
-
-    #X = np.array(X)
-
     group1_features = {}
 
     group1_features["energy"] = energy(X)
@@ -54,17 +44,7 @@ def entropy(X):
 
     hist, bin_edges = np.histogram(X, density = True)
 
-    _entropy = []
-
-    for val in hist:
-
-        if val > 0:
-
-            _entropy.append(float(val) * math.log(val, 2))
-
-    return - np.sum(_entropy)
-
-    #return - np.sum(np.dot(hist, np.log2(hist)))
+    return - np.sum(hist * np.ma.log2(hist))
 
 def kurtosis(X):
 
