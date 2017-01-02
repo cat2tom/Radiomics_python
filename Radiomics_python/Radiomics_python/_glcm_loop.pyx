@@ -138,8 +138,8 @@ def _3d_glcm_vector_loop(unsigned short [:,:,:] image, double distance, int dx, 
     cdef int i, j, _min, _max
 
     len_z = image.shape[0]
-    len_x = image.shape[1]
-    len_y = image.shape[2]
+    len_y = image.shape[1]
+    len_x = image.shape[2]
 
     _min = np.min(image)
     _max = np.max(image)
@@ -151,19 +151,19 @@ def _3d_glcm_vector_loop(unsigned short [:,:,:] image, double distance, int dx, 
 
     for z in range(len_z):
 
-        for x in range(len_x):
+        for y in range(len_y):
 
-            for y in range(len_y):
+            for x in range(len_x):
 
-                i = image[z, x, y]
+                i = image[z, y, x]
 
                 xs = x + <int>(distance * dx)
                 ys = y + <int>(distance * dy)
-                zs = z - <int>(distance * dz)
+                zs = z + <int>(distance * dz)
 
                 if xs >= 0 and xs < len_x and ys >= 0 and ys < len_y and zs >= 0 and zs < len_z:
 
-                    j = image[zs, xs, ys]
+                    j = image[zs, ys, xs]
 
                     out_view[i, j] += 1
 

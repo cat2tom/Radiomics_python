@@ -10,6 +10,8 @@ import profiling_tools
 
 """
 Group 3 : Textural features (Class version)
+
+Updated 2017/1/2 Kaz-K
 """
 
 def calc_entropy(array):
@@ -58,7 +60,7 @@ def group3_glcm_features(image, distance):
 
     glcm_features = {}
 
-    for vector in vectors[1:]:
+    for vector in vectors:
 
         glcm_matrix = GLCM_Matrix(image, distance, vector)
 
@@ -116,31 +118,54 @@ class GLCM_Matrix:
 
     def __init__(self, image, distance, vector):
 
-        self.image = image
+        self.image = image.astype(np.uint16)
 
-        glcm_matrix = _3d_glcm_vector_loop(image, distance, vector[0], vector[1], vector[2])
+        glcm_matrix = _3d_glcm_vector_loop(self.image, distance, vector[0], vector[1], vector[2])
 
-        # normalize glcm_matrix
+        # normalize glcm_matrix to be probabilities
 
         self.glcm_matrix = glcm_matrix.astype(np.float) / np.sum(glcm_matrix)
 
-        levels = np.arange(1, self.glcm_matrix.shape[0]+1)
-        self.levels = levels.astype(np.float)
+        print "glcm: ", self.glcm_matrix
 
-        self.ii, self.jj = np.meshgrid(self.levels, self.levels)
+        self.levels = np.arange(1, self.glcm_matrix.shape[0]+1).astype(np.float)
 
-        # ux/uy should be the marginal row/column probalilities
+        i, j = np.meshgrid(self.levels, self.levels)
 
-        self.ux, self.uy = np.meshgrid(np.sum(self.glcm_matrix, axis=1),
+        self.i = i.T
+        self.j = j.T
+
+        print "i: ", self.i
+        print "j: ", self.j
+
+        px, py = np.meshgrid(np.sum(self.glcm_matrix, axis=1),
                              np.sum(self.glcm_matrix, axis=0))
 
-        self.HXY = self.entropy()
-        self.HX = calc_entropy(self.ux) 
-        self.HY = calc_entropy(self.uy)
-        self.HXY1 = self.HXY1()
-        self.HXY2 = self.HXY2()
+        self.px = px.T # px is the marginal row probabilities
+        self.py = py.T # py is the marginal column probabilities
 
-        self.p_plus = self.p_plus()
+        print "px: ", self.px
+        print "py: ", self.py
+
+        self.ux = np.mean(self.px) # ux is the mean of px
+        self.uy = np.mean(self.py) # uy is the mean of py
+
+        sigx, sigy = np.meshgrid(np.std(self.glcm_matrix, axis=1),
+                                 np.std(self.glcm_matrix, axis=0))
+
+        self.sigx = sigx.T
+        self.sigy = sigy.T
+
+        print "sigx: ", self.sigx
+        print "sigy: ", self.sigy
+
+        #self.HXY = self.entropy()
+        #self.HX = calc_entropy(self.ux) 
+        #self.HY = calc_entropy(self.uy)
+        #self.HXY1 = self.HXY1()
+        #self.HXY2 = self.HXY2()
+
+        #self.p_plus = self.p_plus()
 
         #print "glcm: ", self.glcm_matrix
 
@@ -150,12 +175,12 @@ class GLCM_Matrix:
         #print "HXY1: ", self.HXY1
         #print "HXY2: ", self.HXY2
 
-        #print "autocorrelation: ", self.autocorrelation()
-        #print "cluster prominence: ", self.cluster_prominence()
-        #print "cluster shade: ", self.cluster_shade()
-        #print "cluster tendency: ", self.cluster_tendency()
-        #print "contrast: ", self.contrast()
-        #print "correlation: ", self.correlation()
+        print "autocorrelation: ", self.autocorrelation()
+        print "cluster prominence: ", self.cluster_prominence()
+        print "cluster shade: ", self.cluster_shade()
+        print "cluster tendency: ", self.cluster_tendency()
+        print "contrast: ", self.contrast()
+        print "correlation: ", self.correlation()
         #print "difference entropy: ", self.difference_entropy()
         #print "dissimilarity: ", self.dissimilarity()
         #print "energy: ", self.energy()
@@ -173,165 +198,190 @@ class GLCM_Matrix:
         #print "sum variance: ", self.sum_variance()
         #print "variance: ", self.variance()
 
-    def HXY1(self):
-
-        _HXY1 = []
-
-        _x_y = self.ux * self.uy
-
-        for idx, elem in enumerate(self.glcm_matrix.ravel()):
-
-            if _x_y.ravel()[idx] != 0:
-
-                _HXY1.append(float(elem) * math.log(_x_y.ravel()[idx], 2))
-
-        return - np.sum(_HXY1)
-
-    def HXY2(self):
-
-        return calc_entropy(self.ux * self.uy)
-
     def autocorrelation(self):
 
-        return np.sum(self.ii * self.jj * self.glcm_matrix)
+        return np.sum(self.i * self.j * self.glcm_matrix)
 
     def cluster_prominence(self):
 
-        return np.sum((self.ii + self.jj - self.ux - self.uy) ** 4 * self.glcm_matrix)
+        return np.sum((self.i + self.j - self.px - self.py) ** 4 * self.glcm_matrix)
 
     def cluster_shade(self):
 
-        return np.sum((self.ii + self.jj - self.ux - self.uy) ** 3 * self.glcm_matrix)
+        return np.sum((self.i + self.j - self.px - self.py) ** 3 * self.glcm_matrix)
 
     def cluster_tendency(self):
 
-        return np.sum((self.ii + self.jj - self.ux - self.uy) ** 2 * self.glcm_matrix)
+        return np.sum((self.i + self.j - self.px - self.py) ** 2 * self.glcm_matrix)
 
     def contrast(self):
 
-        return np.sum((self.ii - self.jj) ** 2 * self.glcm_matrix)
+        return np.sum((self.i - self.j) ** 2 * self.glcm_matrix)
 
     def correlation(self):
 
-        return np.sum((self.ii * self.jj * self.glcm_matrix - self.ux * self.uy)/(np.std(self.ux) * np.std(self.uy)))
+        return (self.i * self.j * self.glcm_matrix - self.px * self.py) / (self.sigx * self.sigy)
 
-    def difference_entropy(self):
 
-        _minus = np.abs(self.ii - self.jj)
+    #def HXY1(self):
 
-        p_minus = np.zeros((1, len(self.levels)))
+    #    _HXY1 = []
 
-        for idx, elem in enumerate(self.glcm_matrix.ravel()):
+    #    _x_y = self.ux * self.uy
 
-            p_minus[0, int(_minus.ravel()[idx])] += elem
+    #    for idx, elem in enumerate(self.glcm_matrix.ravel()):
 
-        return - calc_entropy(p_minus)
+    #        if _x_y.ravel()[idx] != 0:
 
-    def dissimilarity(self):
+    #            _HXY1.append(float(elem) * math.log(_x_y.ravel()[idx], 2))
 
-        return np.sum(np.abs(self.ii - self.jj) * self.glcm_matrix)
+    #    return - np.sum(_HXY1)
 
-    def energy(self):
+    #def HXY2(self):
 
-        return np.sum(self.glcm_matrix ** 2)
+    #    return calc_entropy(self.ux * self.uy)
 
-    def entropy(self):
+    #def autocorrelation(self):
 
-        return calc_entropy(self.glcm_matrix)
+    #    return np.sum(self.i * self.j * self.glcm_matrix)
 
-    def homogeneity1(self):
+    #def cluster_prominence(self):
 
-        return np.sum(self.glcm_matrix / (1.0 + np.abs(self.ii - self.jj)))
+    #    return np.sum((self.ii + self.jj - self.ux - self.uy) ** 4 * self.glcm_matrix)
 
-    def homogeneity2(self):
+    #def cluster_shade(self):
 
-        return np.sum(self.glcm_matrix / (1.0 + (self.ii - self.jj) ** 2))
+    #    return np.sum((self.ii + self.jj - self.ux - self.uy) ** 3 * self.glcm_matrix)
 
-    def IMC1(self):
+    #def cluster_tendency(self):
 
-        # IMC1 : Informational measure of correlation 1
+    #    return np.sum((self.ii + self.jj - self.ux - self.uy) ** 2 * self.glcm_matrix)
 
-        return (self.HXY - self.HXY1) / max(self.HX, self.HY)
+    #def contrast(self):
 
-    def IMC2(self):
+    #    return np.sum((self.ii - self.jj) ** 2 * self.glcm_matrix)
 
-        # IMC2 : Informational measure of correlation 2
+    #def correlation(self):
 
-        return math.sqrt(1.0 - math.exp(-2 * (self.HXY2 - self.HXY)))
+    #    return np.sum((self.ii * self.jj * self.glcm_matrix - self.ux * self.uy)/(np.std(self.ux) * np.std(self.uy)))
 
-    def IDMN(self):
+    #def difference_entropy(self):
 
-        # IDMN : Inverse difference moment normalized
+    #    _minus = np.abs(self.ii - self.jj)
 
-        return np.sum(self.glcm_matrix / (1.0 + (self.ii - self.jj) ** 2 / len(self.levels) ** 2))
+    #    p_minus = np.zeros((1, len(self.levels)))
 
-    def IDN(self):
+    #    for idx, elem in enumerate(self.glcm_matrix.ravel()):
 
-        # IDN : Inverse difference normalized
+    #        p_minus[0, int(_minus.ravel()[idx])] += elem
 
-        return np.sum(self.glcm_matrix / (1.0 + np.abs(self.ii - self.jj) / len(self.levels)))
+    #    return - calc_entropy(p_minus)
 
-    def inverse_variance(self):
+    #def dissimilarity(self):
 
-        _inverse_variance = []
+    #    return np.sum(np.abs(self.ii - self.jj) * self.glcm_matrix)
 
-        for idx, _ii in enumerate(self.ii.ravel()):
+    #def energy(self):
 
-            _jj = self.jj.ravel()[idx]
+    #    return np.sum(self.glcm_matrix ** 2)
 
-            if _ii != _jj:
+    #def entropy(self):
 
-                _inverse_variance.append(self.glcm_matrix.ravel()[idx] / (_ii - _jj) **2)
+    #    return calc_entropy(self.glcm_matrix)
 
-        return np.sum(_inverse_variance)
+    #def homogeneity1(self):
 
-    def maximum_probability(self):
+    #    return np.sum(self.glcm_matrix / (1.0 + np.abs(self.ii - self.jj)))
 
-        return np.max(self.glcm_matrix)
+    #def homogeneity2(self):
 
-    def sum_average(self):
+    #    return np.sum(self.glcm_matrix / (1.0 + (self.ii - self.jj) ** 2))
 
-        _sum_average = []
+    #def IMC1(self):
 
-        for i, val in enumerate(self.p_plus):
+    #    # IMC1 : Informational measure of correlation 1
 
-            i  += 2
+    #    return (self.HXY - self.HXY1) / max(self.HX, self.HY)
 
-            _sum_average.append(i * val)
+    #def IMC2(self):
 
-        return np.sum(_sum_average)
+    #    # IMC2 : Informational measure of correlation 2
 
-    def sum_entropy(self):
+    #    return math.sqrt(1.0 - math.exp(-2 * (self.HXY2 - self.HXY)))
 
-        return calc_entropy(self.p_plus)
+    #def IDMN(self):
 
-    def sum_variance(self):
+    #    # IDMN : Inverse difference moment normalized
 
-        _sum_variance = []
-        _SE = self.sum_entropy()
+    #    return np.sum(self.glcm_matrix / (1.0 + (self.ii - self.jj) ** 2 / len(self.levels) ** 2))
 
-        for i, val in enumerate(self.p_plus):
+    #def IDN(self):
 
-            i += 2
+    #    # IDN : Inverse difference normalized
 
-            _sum_variance.append((i - _SE) ** 2 * val)
+    #    return np.sum(self.glcm_matrix / (1.0 + np.abs(self.ii - self.jj) / len(self.levels)))
 
-        return np.sum(_sum_variance)
+    #def inverse_variance(self):
 
-    def variance(self):
+    #    _inverse_variance = []
 
-        _u = np.mean(self.glcm_matrix)
+    #    for idx, _ii in enumerate(self.ii.ravel()):
 
-        return np.sum((self.ii - _u) ** 2 * self.glcm_matrix)
+    #        _jj = self.jj.ravel()[idx]
 
-    def p_plus(self):
+    #        if _ii != _jj:
 
-        _plus = self.ii + self.jj
+    #            _inverse_variance.append(self.glcm_matrix.ravel()[idx] / (_ii - _jj) **2)
 
-        p_plus = np.zeros((1, 2 * len(self.levels) - 1))
+    #    return np.sum(_inverse_variance)
 
-        for idx, elem in enumerate(self.glcm_matrix.ravel()):
+    #def maximum_probability(self):
 
-            p_plus[0, int(_plus.ravel()[idx]) - 2] += elem
+    #    return np.max(self.glcm_matrix)
 
-        return p_plus.ravel()
+    #def sum_average(self):
+
+    #    _sum_average = []
+
+    #    for i, val in enumerate(self.p_plus):
+
+    #        i  += 2
+
+    #        _sum_average.append(i * val)
+
+    #    return np.sum(_sum_average)
+
+    #def sum_entropy(self):
+
+    #    return calc_entropy(self.p_plus)
+
+    #def sum_variance(self):
+
+    #    _sum_variance = []
+    #    _SE = self.sum_entropy()
+
+    #    for i, val in enumerate(self.p_plus):
+
+    #        i += 2
+
+    #        _sum_variance.append((i - _SE) ** 2 * val)
+
+    #    return np.sum(_sum_variance)
+
+    #def variance(self):
+
+    #    _u = np.mean(self.glcm_matrix)
+
+    #    return np.sum((self.ii - _u) ** 2 * self.glcm_matrix)
+
+    #def p_plus(self):
+
+    #    _plus = self.ii + self.jj
+
+    #    p_plus = np.zeros((1, 2 * len(self.levels) - 1))
+
+    #    for idx, elem in enumerate(self.glcm_matrix.ravel()):
+
+    #        p_plus[0, int(_plus.ravel()[idx]) - 2] += elem
+
+    #    return p_plus.ravel()

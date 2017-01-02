@@ -28,11 +28,27 @@ def main():
     #                   [4, 2, 2, 2, 3],
     #                   [3, 5, 3, 3, 2]]])
 
-    image = np.arange(3 * 3 * 3).reshape((3, 3, 3))
+    image = np.array([[[1, 2, 5, 2, 3], 
+                       [3, 2, 1, 3, 1],
+                       [1, 3, 5, 5, 2],
+                       [1, 1, 1, 1, 2],
+                       [1, 2, 4, 3, 5]]]).astype(np.uint16)
+
+    #image = np.array([[[1, 1, 5, 6, 8],
+    #                   [2, 3, 5, 7, 1],
+    #                   [4, 5, 7, 1, 2],
+    #                   [8, 5, 1, 2, 5]]])
+
+    #image = np.arange(3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint16)
+
+    glcm = GLCM_Matrix(image, 1, [1,0,0])
+
+
+    #image = np.arange(3 * 3 * 3).reshape((3, 3, 3))
 
     #coeffs = pywt.dwtn(image, 'coif1')
 
-    print wavelet_transform(image)
+    #print wavelet_transform(image)
 
     #GLRL_Matrix(image, 1, 1)
 
