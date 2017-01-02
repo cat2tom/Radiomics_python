@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>cf090429-938c-436d-ad5c-d18635bcbf53</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Radiomics_python.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +22,33 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="group1_features.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="group2_features.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="group3_glcm.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="group3_glrl.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="group4_features.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="main.py" />
+    <Compile Include="profiling_tools.py" />
     <Compile Include="Radiomics_python.py" />
+    <Compile Include="readDVH.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="_glcm_3d_loop.pyx" />
+    <Content Include="_glcm_loop.pyx" />
+    <Content Include="_glrl_loop.pyx" />
+    <Content Include="_make_masked_image.pyx" />
+    <Content Include="_maximum_3d_distance.pyx" />
+    <Content Include="_point_in_polygon.pyx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
