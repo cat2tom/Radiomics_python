@@ -53,8 +53,8 @@ def getDoseParameters(sequence_num, rtss, rtdose):
 
     print linear(20.0)
 
-rtss_path = r'C:\Users\Kazuma\Desktop\Radiomics\Radiomics\rtss.dcm'
-rtdose_path = r'C:\Users\Kazuma\Desktop\Radiomics\Radiomics\rtdose.dcm'
+rtss_path = r'rtss.dcm'
+rtdose_path = r'rtdose.dcm'
 
 rtss = dicom.read_file(rtss_path)
 rtdose = dicom.read_file(rtdose_path)
