@@ -107,9 +107,9 @@ class GLCM_Matrix:
         self.image = image.astype(np.uint16)
         self.glcm_matrix = None
         self.levels = None
+
         self.i = None
         self.j = None
-
         self.px = None
         self.py = None
         self.ux = None
@@ -168,6 +168,7 @@ class GLCM_Matrix:
 
         self.HX = - np.sum(self.px * np.ma.log2(self.px))
         self.HY = - np.sum(self.py * np.ma.log2(self.py))
+
         self.HXY = - np.sum(self.glcm_matrix * np.ma.log2(self.glcm_matrix))
 
         _px, _py = np.meshgrid(self.px, self.py)

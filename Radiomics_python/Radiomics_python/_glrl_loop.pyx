@@ -61,10 +61,10 @@ def _calc_run_length(unsigned short [:,:,:] image,
 
     cdef int xs, ys, zs, len_x, len_y, len_z, len_array
     cdef int n = 0
-
+    
     len_z = image.shape[0]
-    len_x = image.shape[1]
-    len_y = image.shape[2]
+    len_y = image.shape[1]
+    len_x = image.shape[2]
 
     len_array = <int>(sqrt((len_x * dx) ** 2 + (len_y * dy) ** 2 + (len_z * dz) ** 2))
 
@@ -76,7 +76,7 @@ def _calc_run_length(unsigned short [:,:,:] image,
     
     while _boundary_check(xs, ys, zs, len_x, len_y, len_z):
 
-        array[n] = image[zs, xs, ys]
+        array[n] = image[zs, ys, xs]
 
         xs += dx
         ys += dy
@@ -105,16 +105,14 @@ def _form_np_matrix(np.ndarray out):
 @cython.boundscheck(False)
 def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
 
-    # image : converted to gray levels
-
     cdef int x, y, z, xs, ys, zs, len_x, len_y, len_z
     cdef int i, j, ii, jj, _min, _max, n
     cdef int dx, dy, dz, max_len_of_out
     cdef int last_num = -1, count = 0
 
     len_z = image.shape[0]
-    len_x = image.shape[1]
-    len_y = image.shape[2]
+    len_y = image.shape[1]
+    len_x = image.shape[2]
 
     _min = np.min(image)
     _max = np.max(image)
@@ -122,44 +120,10 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
     levels = _max + 1
     max_len_of_out = <int>(sqrt(len_x ** 2 + len_y ** 2 + len_z ** 2))
 
-    out = np.zeros([levels, max_len_of_out], dtype = np.int) # you should determine the size of out
+    out = np.zeros([levels, max_len_of_out], dtype = np.int)
     cdef int [:,:] out_view = out
 
-    if direction == 1:
-
-        dx = 0
-        dy = 1
-        dz = 0
-
-        y = 0
-
-        for z in range(len_z):
-
-            for x in range(len_x):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-    elif direction == 2:
-
-        dx = -1
-        dy = 1
-        dz = 0
-
-        for z in range(len_z):
-   
-            y = 0
-
-            for x in range(len_x):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-            x = len_x - 1
-
-            for y in range(1, len_y):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-    elif direction == 3:
+    if direction == 1: 
 
         dx = 1
         dy = 0
@@ -173,97 +137,131 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
-    elif direction == 4:
+    elif direction == 2: 
 
         dx = 1
-        dy = 1
+        dy = -1
         dz = 0
 
         for z in range(len_z):
+   
+            x = 0
 
-            y = 0
+            for y in range(len_y):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+            y = len_y - 1
+
+            for x in range(1, len_x):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+    elif direction == 3:
+
+        dx = 0
+        dy = 1
+        dz = 0
+
+        y = 0
+
+        for z in range(len_z):
 
             for x in range(len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
+    elif direction == 4:
+
+        dx = 1
+        dy = 1 
+        dz = 0
+
+        for z in range(len_z):
+
             x = 0
 
-            for y in range(1, len_y):
+            for y in range(len_y):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+            y = 0
+
+            for x in range(1, len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
     elif direction == 5:
 
-        dx = 0
-        dy = 1
+        dx = 1
+        dy = 0
         dz = -1
 
-        y = 0
+        x = 0
 
         for z in range(len_z):
 
-            for x in range(len_x):
+            for y in range(len_y):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)      
 
         z = len_z - 1
 
-        for y in range(1, len_y):
+        for x in range(1, len_x):
 
-            for x in range(len_x):
+            for y in range(len_y):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
     elif direction == 6:
 
-        dx = -1
-        dy = 1
+        dx = 1
+        dy = -1
         dz = -1
 
-        y = 0
+        x = 0
 
         for z in range(len_z):
 
-            for x in range(len_x):
+            for y in range(len_y):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
         z = len_z - 1
 
-        for y in range(1, len_y):
+        for x in range(1, len_x):
 
-            for x in range(len_x):
+            for y in range(len_y):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
-        x = len_x - 1
+        y = len_y - 1
 
         for z in range(len_z - 1):
 
-            for y in range(1, len_y):
+            for x in range(1, len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
     elif direction == 7:
 
-        dx = -1
-        dy = 0
+        dx = 0
+        dy = -1
         dz = -1
 
-        x = len_x - 1
+        y = len_y - 1
 
         for z in range(len_z):
 
-            for y in range(len_y):
+            for x in range(len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
         z = len_z - 1
 
-        for x in range(len_x - 1):
+        for y in range(len_y - 1):
 
-            for y in range(len_y):
+            for x in range(len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
@@ -273,25 +271,25 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
         dy = -1
         dz = -1
 
-        x = len_x - 1
+        y = len_y - 1
 
         for z in range(len_z):
 
-            for y in range(len_y):
+            for x in range(len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
         z = len_z - 1
 
-        for x in range(len_x - 1):
+        for y in range(len_y - 1):
 
-            for y in range(len_y):
+            for x in range(len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
-        y = len_y - 1
+        x = len_x - 1
 
-        for x in range(len_x - 1):
+        for y in range(len_y - 1):
 
             for z in range(len_z - 1):
 
@@ -299,13 +297,13 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
 
     elif direction == 9:
 
-        dx = 0
-        dy = -1
+        dx = -1
+        dy = 0
         dz = -1
 
-        y = len_y - 1
+        x = len_x - 1
 
-        for x in range(len_x):
+        for y in range(len_y):
 
             for z in range(len_z):
 
@@ -313,67 +311,15 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
 
         z = len_z - 1
 
-        for x in range(len_x):
+        for y in range(len_y):
 
-            for y in range(len_y - 1):
+            for x in range(len_x - 1):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
     elif direction == 10:
 
-        dx = 1
-        dy = -1
-        dz = -1
-
-        x = 0
-
-        for y in range(len_y):
-
-            for z in range(len_z):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-        y = len_y - 1
-
-        for x in range(1, len_x):
-
-            for z in range(len_z):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-        z = len_z - 1
-
-        for x in range(1, len_x):
-
-            for y in range(len_y - 1):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-    elif direction == 11:
-
-        dx = 1
-        dy = 0
-        dz = -1
-
-        x = 0
-
-        for y in range(len_y):
-
-            for z in range(len_z):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-        z = len_z - 1
-
-        for x in range(1, len_x):
-
-            for y in range(len_y):
-
-                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
-
-    elif direction == 12:
-
-        dx = 1
+        dx = -1
         dy = 1
         dz = -1
 
@@ -385,7 +331,7 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
-        x = 0
+        x = len_x - 1
 
         for y in range(1, len_y):
 
@@ -395,9 +341,61 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
 
         z = len_z - 1
 
+        for y in range(1, len_y):
+
+            for x in range(len_x - 1):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+    elif direction == 11:
+
+        dx = 0
+        dy = 1
+        dz = -1
+
+        y = 0
+
+        for x in range(len_x):
+
+            for z in range(len_z):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+        z = len_z - 1
+
+        for y in range(1, len_y):
+
+            for x in range(len_x):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+    elif direction == 12:
+
+        dx = 1
+        dy = 1
+        dz = -1
+
+        x = 0
+
+        for y in range(len_y):
+
+            for z in range(len_z):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+        y = 0
+
         for x in range(1, len_x):
 
-            for y in range(1, len_y):
+            for z in range(len_z):
+
+                _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
+
+        z = len_z - 1
+
+        for y in range(1, len_y):
+
+            for x in range(1, len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
 
@@ -409,9 +407,9 @@ def _glrl_vector_loop(unsigned short [:,:,:] image, int direction):
 
         z = len_z - 1
 
-        for x in range(len_x):
+        for y in range(len_y):
 
-            for y in range(len_y):
+            for x in range(len_x):
 
                 _calc_run_length(image, x, y, z, dx, dy, dz, out_view)
     

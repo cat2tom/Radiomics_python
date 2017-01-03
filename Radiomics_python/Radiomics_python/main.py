@@ -22,11 +22,11 @@ def wavelet_transform(image):
 
 def main():
 
-    #image = np.array([[[5, 2, 5, 4, 4], 
-    #                   [3, 3, 3, 1, 3],
-    #                   [2, 1, 1, 1, 3],
-    #                   [4, 2, 2, 2, 3],
-    #                   [3, 5, 3, 3, 2]]])
+    image = np.array([[[5, 2, 5, 4, 4], 
+                       [3, 3, 3, 1, 3],
+                       [2, 1, 1, 1, 3],
+                       [4, 2, 2, 2, 3],
+                       [3, 5, 3, 3, 2]]])
 
     #image = np.array([[[1, 2, 5, 2, 3], 
     #                   [3, 2, 1, 3, 1],
@@ -34,15 +34,15 @@ def main():
     #                   [1, 1, 1, 1, 2],
     #                   [1, 2, 4, 3, 5]]]).astype(np.uint16)
 
-    image = np.array([[[1, 1, 5, 6, 8],
-                       [2, 3, 5, 7, 1],
-                       [4, 5, 7, 1, 2],
-                       [8, 5, 1, 2, 5]]])
+    #image = np.array([[[1, 1, 5, 6, 8],
+    #                   [2, 3, 5, 7, 1],
+    #                   [4, 5, 7, 1, 2],
+    #                   [8, 5, 1, 2, 5]]])
 
     #image = np.arange(3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint16)
 
-    glcm = GLCM_Matrix(image) #, 1, [1,0,0])
-    glcm.calc_GLCM(1, [1, 0, 0])
+    #glcm = GLCM_Matrix(image) #, 1, [1,0,0])
+    #glcm.calc_GLCM(1, [1, 0, 0])
 
     #image = np.arange(3 * 3 * 3).reshape((3, 3, 3))
 
@@ -50,7 +50,8 @@ def main():
 
     #print wavelet_transform(image)
 
-    #GLRL_Matrix(image, 1, 1)
+    glrl_matrix = GLRL_Matrix(image)
+    glrl_matrix.calc_GLRL(1)
 
     #volume = np.arange(5 * 7 * 8).reshape((5, 7, 8))
 
